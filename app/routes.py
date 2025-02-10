@@ -57,12 +57,17 @@ def index():
             session["chapters"] = [
                 {"title": ch["title"], "content": ch["content"]} for ch in chapters
             ]
+            session["current_filename"] = filename  # Store filename in session
             logger.info(f"Stored {len(chapters)} chapters in session")
 
             if request.headers.get("X-Requested-With") == "XMLHttpRequest":
                 logger.info("AJAX request detected")
-                return render_template("index.html", chapters=chapters)
-            return render_template("index.html", chapters=chapters)
+                return render_template(
+                    "index.html", chapters=chapters, current_filename=filename
+                )
+            return render_template(
+                "index.html", chapters=chapters, current_filename=filename
+            )
 
         flash("Please upload an EPUB file")
     return render_template("index.html")

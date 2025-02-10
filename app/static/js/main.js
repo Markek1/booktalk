@@ -63,32 +63,21 @@ function resetChat() {
 
 // Move all event binding logic to a single function
 function bindEventListeners() {
-	// Handle file selection
+	// Handle file selection and automatic upload
 	const fileInput = document.getElementById("file-input");
 	const fileSelected = document.querySelector(".file-selected");
-	const uploadButton = document.getElementById("upload-button");
 	const questionInput = document.getElementById("question-input");
 	const askButton = document.getElementById("ask-button");
 
-	if (fileInput && fileSelected && uploadButton) {
-		// File selection handler
+	if (fileInput && fileSelected) {
 		fileInput.addEventListener("change", function () {
 			if (fileInput.files.length > 0) {
-				fileSelected.textContent = fileInput.files[0].name;
-			} else {
-				fileSelected.textContent = "No file selected.";
-			}
-		});
+				const fileName = fileInput.files[0].name;
+				fileSelected.textContent = fileName;
+				console.log("File selected:", fileName);
 
-		// File upload handler
-		uploadButton.addEventListener("click", function () {
-			console.log("Upload button clicked");
-			const form = document.getElementById("upload-form");
-			const fileInput = document.getElementById("file-input");
-
-			console.log("File input:", fileInput.files);
-
-			if (fileInput.files.length > 0) {
+				// Automatically upload the file
+				const form = document.getElementById("upload-form");
 				const formData = new FormData(form);
 
 				console.log("Sending fetch request...");
@@ -107,15 +96,56 @@ function bindEventListeners() {
 					})
 					.then((html) => {
 						console.log("HTML received");
-						document.documentElement.innerHTML = html;
-						// Rebind event listeners after updating the DOM
+						// Create a temporary container to parse the HTML
+						const tempDiv = document.createElement("div");
+						tempDiv.innerHTML = html;
+
+						// Update only the necessary parts of the page
+						const newChaptersList =
+							tempDiv.querySelector(".chapters-list");
+						const newContent =
+							tempDiv.querySelector("#chapter-content") ||
+							tempDiv.querySelector(".empty-state");
+						const contentPanel =
+							document.querySelector(".content-panel");
+
+						// Update chapters list
+						const currentChaptersList =
+							document.querySelector(".chapters-list");
+						if (newChaptersList) {
+							if (currentChaptersList) {
+								currentChaptersList.replaceWith(
+									newChaptersList
+								);
+							} else {
+								// If there was no chapters list before, add it to left panel
+								document
+									.querySelector(".left-panel")
+									.appendChild(newChaptersList);
+							}
+						}
+
+						// Update content panel
+						if (newContent) {
+							if (contentPanel) {
+								// Clear existing content
+								contentPanel.innerHTML = "";
+								// Add new content
+								contentPanel.appendChild(newContent);
+							}
+						}
+
+						// Keep the filename display
+						fileSelected.textContent = fileName;
+
+						// Rebind event listeners
 						bindEventListeners();
 					})
 					.catch((error) => {
 						console.error("Error:", error);
 					});
 			} else {
-				console.log("No file selected");
+				fileSelected.textContent = "No file selected.";
 			}
 		});
 	}

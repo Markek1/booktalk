@@ -24,11 +24,11 @@ body {
 .left-panel {
 	width: 350px;
 	min-width: 200px;
-	border-right: 1px solid #ddd;
+	border-right: 1px solid var(--border-color);
 	display: flex;
 	flex-direction: column;
 	height: 100%;
-	background: #f8f9fa;
+	background: var(--bg-light);
 }
 
 .upload-form {
@@ -54,15 +54,16 @@ body {
 /* Style the custom file input button */
 .file-label {
 	padding: 5px 10px;
-	background: #f8f9fa;
-	border: 1px solid #ccc;
+	background: var(--primary-color);
+	border: none;
 	border-radius: 3px;
 	cursor: pointer;
 	font-size: 14px;
+	color: white;
 }
 
 .file-label:hover {
-	background: #e9ecef;
+	background: var(--primary-dark);
 }
 
 .file-selected {
@@ -74,15 +75,16 @@ body {
 
 .upload-btn {
 	padding: 5px 10px;
-	background: #f8f9fa;
-	border: 1px solid #ccc;
+	background: var(--primary-color);
+	border: none;
 	border-radius: 3px;
 	cursor: pointer;
 	font-size: 14px;
+	color: white;
 }
 
 .upload-btn:hover {
-	background: #e9ecef;
+	background: var(--primary-dark);
 }
 
 .chapters-list {
@@ -94,17 +96,19 @@ body {
 	padding: 12px 20px;
 	cursor: pointer;
 	font-size: 15px;
-	color: #333;
+	color: var(--text-primary);
 	line-height: 1.4;
-	border-bottom: 1px solid #eee;
+	border-bottom: 1px solid var(--border-color);
 }
 
 .chapter-item:hover {
-	background: #eef1f4;
+	background: var(--primary-color);
+	color: white;
 }
 
 .chapter-item.active {
-	background: #e9ecef;
+	background: var(--primary-color);
+	color: white;
 	font-weight: 500;
 }
 
@@ -114,6 +118,7 @@ body {
 	overflow-y: auto;
 	line-height: 1.7;
 	background: white;
+	color: var(--text-primary);
 }
 
 /* Add styles for the chapter content */
@@ -121,7 +126,7 @@ body {
 	max-width: 900px;
 	margin: 0 auto;
 	font-size: 18px;
-	color: #222;
+	color: var(--text-primary);
 }
 
 #chapter-content p {
@@ -195,23 +200,22 @@ body {
 .chat-header h2 {
 	margin: 0;
 	font-size: 1.2em;
-	color: #333;
+	color: var(--text-primary);
 }
 
 .new-chat-btn {
 	padding: 6px 12px;
-	background: #f8f9fa;
-	border: 1px solid #ddd;
+	background: var(--primary-color);
+	border: none;
 	border-radius: 4px;
 	cursor: pointer;
 	font-size: 0.9em;
-	color: #333;
+	color: white;
 	transition: all 0.2s ease;
 }
 
 .new-chat-btn:hover {
-	background: #e9ecef;
-	border-color: #ccc;
+	background: var(--primary-dark);
 }
 
 .chat-messages {
@@ -227,17 +231,19 @@ body {
 
 .message.user {
 	margin-left: auto;
-	background: #007bff;
+	background: var(--primary-color);
 	color: white;
 	padding: 10px 15px;
 	border-radius: 15px 15px 0 15px;
 }
 
 .message.assistant {
-	background: #f8f9fa;
+	background: white;
 	padding: 15px 20px;
 	border-radius: 15px 15px 15px 0;
 	line-height: 1.5;
+	border: 1px solid var(--border-color);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .message.assistant p {
@@ -253,19 +259,21 @@ body {
 }
 
 .message.assistant code {
-	background: #e9ecef;
+	background: var(--bg-light);
 	padding: 2px 4px;
 	border-radius: 3px;
+	border: 1px solid var(--border-color);
 	font-family: monospace;
 	font-size: 0.9em;
 }
 
 .message.assistant pre {
-	background: #e9ecef;
+	background: var(--bg-light);
 	padding: 10px;
 	border-radius: 5px;
 	overflow-x: auto;
 	margin: 0.5em 0;
+	border: 1px solid var(--border-color);
 }
 
 .message.assistant pre code {
@@ -280,10 +288,11 @@ body {
 }
 
 .message.assistant blockquote {
-	border-left: 3px solid #007bff;
+	border-left: 3px solid var(--primary-color);
 	margin: 0.5em 0;
 	padding-left: 1em;
-	color: #666;
+	color: var(--text-secondary);
+	background: var(--bg-light);
 }
 
 .chat-input {
@@ -296,16 +305,21 @@ body {
 .chat-input textarea {
 	flex-grow: 1;
 	padding: 10px;
-	border: 1px solid #ddd;
+	border: 2px solid var(--border-color);
 	border-radius: 4px;
 	resize: none;
 	height: 40px;
 	font-family: inherit;
 }
 
+.chat-input textarea:focus {
+	border-color: var(--primary-color);
+	outline: none;
+}
+
 .chat-input button {
 	padding: 8px 20px;
-	background: #007bff;
+	background: var(--primary-color);
 	color: white;
 	border: none;
 	border-radius: 4px;
@@ -313,7 +327,7 @@ body {
 }
 
 .chat-input button:hover {
-	background: #0056b3;
+	background: var(--primary-dark);
 }
 
 /* Markdown styling */
@@ -368,4 +382,16 @@ body {
 	margin: 0.5em 0;
 	padding-left: 1em;
 	color: #666;
+}
+
+:root {
+	/* Color palette */
+	--primary-color: #4a90e2; /* Bright blue */
+	--primary-dark: #357abd; /* Darker blue for hover states */
+	--accent-color: #50b45e; /* Green for accents */
+	--bg-light: #f8f9fa;
+	--bg-dark: #e9ecef;
+	--text-primary: #2c3e50; /* Dark blue-gray for main text */
+	--text-secondary: #6c757d; /* Gray for secondary text */
+	--border-color: #dee2e6;
 }
