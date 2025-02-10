@@ -1,13 +1,64 @@
 // JavaScript functionality can be added here
 
+// Add conversation history tracking
+let conversationHistory = [];
+
+// Function to safely render markdown
+function renderMarkdown(content) {
+	// Check if marked is available
+	if (typeof marked === "undefined") {
+		console.warn("Marked library not loaded, falling back to plain text");
+		return content;
+	}
+
+	try {
+		// Configure marked for safe rendering
+		marked.setOptions({
+			breaks: true, // Convert line breaks to <br>
+			sanitize: true, // Sanitize HTML input
+			gfm: true, // Enable GitHub Flavored Markdown
+		});
+		return marked.parse(content); // Use marked.parse instead of just marked
+	} catch (e) {
+		console.error("Error rendering markdown:", e);
+		return content;
+	}
+}
+
 // Function to add chat messages
-function addMessage(content, isUser = false) {
+function addMessage(content, isUser = false, addToHistory = true) {
 	const messagesDiv = document.getElementById("chat-messages");
 	const messageDiv = document.createElement("div");
 	messageDiv.className = `message ${isUser ? "user" : "assistant"}`;
-	messageDiv.textContent = content;
+
+	// Render markdown for assistant messages only
+	if (isUser) {
+		messageDiv.textContent = content;
+	} else {
+		messageDiv.innerHTML = renderMarkdown(content);
+	}
+
 	messagesDiv.appendChild(messageDiv);
 	messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+	// Add message to conversation history only if specified
+	if (addToHistory) {
+		conversationHistory.push({
+			role: isUser ? "user" : "assistant",
+			content: content,
+		});
+	}
+	return messageDiv;
+}
+
+// Add function to reset chat
+function resetChat() {
+	// Clear conversation history
+	conversationHistory = [];
+
+	// Clear chat messages
+	const chatMessages = document.getElementById("chat-messages");
+	chatMessages.innerHTML = "";
 }
 
 // Move all event binding logic to a single function
@@ -74,22 +125,40 @@ function bindEventListeners() {
 		askButton.addEventListener("click", async function () {
 			console.log("Ask button clicked");
 			const question = questionInput.value.trim();
-			if (!question) return;
+			if (!question) {
+				console.log("Empty question, ignoring");
+				return;
+			}
 
 			// Get current chapter content
 			const chapterContent =
-				document.getElementById("chapter-content").textContent;
+				document.getElementById("chapter-content")?.textContent;
+			if (!chapterContent) {
+				console.error("No chapter content found");
+				return;
+			}
 
 			// Get CSRF token
 			const csrfToken = document.querySelector(
 				'input[name="csrf_token"]'
-			).value;
+			)?.value;
+			if (!csrfToken) {
+				console.error("No CSRF token found");
+				return;
+			}
 
-			// Add user's question to chat
+			console.log("Sending question:", question.substring(0, 50) + "...");
+
+			// Add user's question to chat and history
 			addMessage(question, true);
 			questionInput.value = "";
 
 			try {
+				// Create message element for the response without adding to history yet
+				const messageDiv = addMessage("", false, false);
+				let fullResponse = "";
+
+				console.log("Fetching response from server...");
 				const response = await fetch("/ask", {
 					method: "POST",
 					headers: {
@@ -100,15 +169,56 @@ function bindEventListeners() {
 					body: JSON.stringify({
 						question: question,
 						chapter_content: chapterContent,
+						conversation_history: conversationHistory,
 					}),
 				});
 
-				const data = await response.json();
-				if (data.error) {
-					addMessage("Sorry, I encountered an error: " + data.error);
-				} else {
-					addMessage(data.answer);
+				if (!response.ok) {
+					throw new Error(`HTTP error! status: ${response.status}`);
 				}
+
+				console.log("Starting to read response stream...");
+				const reader = response.body.getReader();
+				const decoder = new TextDecoder();
+
+				while (true) {
+					const { value, done } = await reader.read();
+					if (done) {
+						console.log("Stream complete");
+						break;
+					}
+
+					const text = decoder.decode(value);
+					console.log(
+						"Received chunk:",
+						text.substring(0, 50) + "..."
+					);
+					const lines = text.split("\n");
+
+					for (const line of lines) {
+						if (line.startsWith("data: ")) {
+							try {
+								const data = JSON.parse(line.slice(6));
+								fullResponse += data.content;
+								messageDiv.innerHTML =
+									renderMarkdown(fullResponse);
+								messageDiv.scrollIntoView({
+									behavior: "smooth",
+									block: "end",
+								});
+							} catch (e) {
+								console.error("Error parsing SSE data:", e);
+								console.error("Problematic line:", line);
+							}
+						}
+					}
+				}
+
+				// Add the complete response to conversation history
+				conversationHistory.push({
+					role: "assistant",
+					content: fullResponse,
+				});
 			} catch (error) {
 				console.error("Error:", error);
 				addMessage(
@@ -163,6 +273,11 @@ function bindEventListeners() {
 							contentPanel.innerHTML = content;
 							// Scroll to top of content
 							contentPanel.scrollTop = 0;
+							// Clear conversation history for new chapter
+							conversationHistory = [];
+							// Clear chat messages
+							document.getElementById("chat-messages").innerHTML =
+								"";
 						} else {
 							console.error("Content panel not found");
 						}
@@ -174,6 +289,15 @@ function bindEventListeners() {
 		});
 	} else {
 		console.log("Chapters list not found");
+	}
+
+	// Handle new chat button
+	const newChatButton = document.getElementById("new-chat-button");
+	if (newChatButton) {
+		newChatButton.addEventListener("click", function () {
+			console.log("New chat requested");
+			resetChat();
+		});
 	}
 }
 

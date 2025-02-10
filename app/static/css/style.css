@@ -22,8 +22,8 @@ body {
 }
 
 .left-panel {
-	width: 300px;
-	min-width: 300px;
+	width: 350px;
+	min-width: 200px;
 	border-right: 1px solid #ddd;
 	display: flex;
 	flex-direction: column;
@@ -118,7 +118,7 @@ body {
 
 /* Add styles for the chapter content */
 #chapter-content {
-	max-width: 800px;
+	max-width: 900px;
 	margin: 0 auto;
 	font-size: 18px;
 	color: #222;
@@ -170,8 +170,8 @@ body {
 
 /* Right panel styles */
 .right-panel {
-	width: 400px;
-	min-width: 400px;
+	width: 550px;
+	min-width: 300px;
 	border-left: 1px solid #ddd;
 	display: flex;
 	flex-direction: column;
@@ -187,12 +187,31 @@ body {
 .chat-header {
 	padding: 20px;
 	border-bottom: 1px solid #ddd;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
 }
 
 .chat-header h2 {
 	margin: 0;
 	font-size: 1.2em;
 	color: #333;
+}
+
+.new-chat-btn {
+	padding: 6px 12px;
+	background: #f8f9fa;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 0.9em;
+	color: #333;
+	transition: all 0.2s ease;
+}
+
+.new-chat-btn:hover {
+	background: #e9ecef;
+	border-color: #ccc;
 }
 
 .chat-messages {
@@ -203,7 +222,7 @@ body {
 
 .message {
 	margin-bottom: 20px;
-	max-width: 85%;
+	max-width: 90%;
 }
 
 .message.user {
@@ -216,8 +235,55 @@ body {
 
 .message.assistant {
 	background: #f8f9fa;
-	padding: 10px 15px;
+	padding: 15px 20px;
 	border-radius: 15px 15px 15px 0;
+	line-height: 1.5;
+}
+
+.message.assistant p {
+	margin: 0.5em 0;
+}
+
+.message.assistant p:first-child {
+	margin-top: 0;
+}
+
+.message.assistant p:last-child {
+	margin-bottom: 0;
+}
+
+.message.assistant code {
+	background: #e9ecef;
+	padding: 2px 4px;
+	border-radius: 3px;
+	font-family: monospace;
+	font-size: 0.9em;
+}
+
+.message.assistant pre {
+	background: #e9ecef;
+	padding: 10px;
+	border-radius: 5px;
+	overflow-x: auto;
+	margin: 0.5em 0;
+}
+
+.message.assistant pre code {
+	background: none;
+	padding: 0;
+}
+
+.message.assistant ul,
+.message.assistant ol {
+	margin: 0.5em 0;
+	padding-left: 1.5em;
+}
+
+.message.assistant blockquote {
+	border-left: 3px solid #007bff;
+	margin: 0.5em 0;
+	padding-left: 1em;
+	color: #666;
 }
 
 .chat-input {
@@ -248,4 +314,58 @@ body {
 
 .chat-input button:hover {
 	background: #0056b3;
+}
+
+/* Markdown styling */
+.message.assistant {
+	background: #f8f9fa;
+	padding: 15px 20px;
+	border-radius: 15px 15px 15px 0;
+	line-height: 1.5;
+}
+
+.message.assistant p {
+	margin: 0.5em 0;
+}
+
+.message.assistant p:first-child {
+	margin-top: 0;
+}
+
+.message.assistant p:last-child {
+	margin-bottom: 0;
+}
+
+.message.assistant code {
+	background: #e9ecef;
+	padding: 2px 4px;
+	border-radius: 3px;
+	font-family: monospace;
+	font-size: 0.9em;
+}
+
+.message.assistant pre {
+	background: #e9ecef;
+	padding: 10px;
+	border-radius: 5px;
+	overflow-x: auto;
+	margin: 0.5em 0;
+}
+
+.message.assistant pre code {
+	background: none;
+	padding: 0;
+}
+
+.message.assistant ul,
+.message.assistant ol {
+	margin: 0.5em 0;
+	padding-left: 1.5em;
+}
+
+.message.assistant blockquote {
+	border-left: 3px solid #007bff;
+	margin: 0.5em 0;
+	padding-left: 1em;
+	color: #666;
 }

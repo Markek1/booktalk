@@ -7,12 +7,14 @@ from flask import (
     current_app,
     session,
     jsonify,
+    Response,
 )
 from werkzeug.utils import secure_filename
 import os
 from app.utils.epub_processor import extract_chapters
 from openai import OpenAI
 import logging
+import json
 
 main = Blueprint("main", __name__)
 logger = logging.getLogger(__name__)
@@ -94,53 +96,62 @@ def ask_question():
     data = request.json
     question = data.get("question")
     chapter_content = data.get("chapter_content")
+    conversation_history = data.get("conversation_history", [])
 
-    logger.info(
-        f"Received question: {question[:100]}..."
-    )  # Log first 100 chars of question
+    logger.info(f"Received question: {question[:100]}...")
     logger.info(
         f"Chapter content length: {len(chapter_content) if chapter_content else 0} characters"
     )
+    logger.info(f"Conversation history length: {len(conversation_history)}")
 
     if not question or not chapter_content:
         logger.error("Missing question or chapter content")
         return jsonify({"error": "Missing question or chapter content"}), 400
 
     try:
-        # Prepare the prompt
-        prompt = f"""You are a helpful assistant analyzing a book chapter.
-        First read this chapter content:
+        # Prepare the system message with context
+        system_message = f"""You are a distinguished professor with decades of teaching experience,
+        known for your ability to explain complex topics in clear,
+        simple terms. You excel at breaking down difficult concepts into concise,
+        easily digestible explanations that students can readily understand. You have a gift
+        for providing relevant, memorable examples that perfectly illustrate key concepts and
+        make abstract ideas concrete and accessible.
+        You are helping a student understand a chapter of a book.
+
+        Here is the chapter content for reference:
 
         {chapter_content}
 
-        Now answer this question about the chapter:
-        {question}"""
+        Please answer questions about this chapter while maintaining context from the conversation."""
 
+        # Build messages array with conversation history
+        messages = [
+            {"role": "system", "content": system_message},
+        ]
+
+        # Add conversation history
+        messages.extend(conversation_history)
+
+        # Add the new question
+        messages.append({"role": "user", "content": question})
+
+        total_length = sum(len(message["content"]) for message in messages)
         logger.info(
-            f"Sending request to OpenAI API with prompt length: {len(prompt)} characters"
+            f"Sending request with {len(messages)} messages and total length {total_length}"
         )
 
-        # Call OpenAI API
-        response = client.chat.completions.create(
-            model="deepseek-chat",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are a helpful assistant analyzing book content.",
-                },
-                {"role": "user", "content": prompt},
-            ],
-        )
+        def generate():
+            response = client.chat.completions.create(
+                model="deepseek-chat",
+                messages=messages,
+                stream=True,
+            )
 
-        answer = response.choices[0].message.content
-        logger.info(
-            f"Received response from OpenAI API. Answer length: {len(answer)} characters"
-        )
-        logger.info(
-            f"Answer preview: {answer[:100]}..."
-        )  # Log first 100 chars of answer
+            for chunk in response:
+                if chunk.choices[0].delta.content is not None:
+                    yield f"data: {json.dumps({'content': chunk.choices[0].delta.content})}\n\n"
 
-        return jsonify({"answer": answer})
+        return Response(generate(), mimetype="text/event-stream")
 
     except Exception as e:
         logger.error(f"Error calling OpenAI API: {str(e)}", exc_info=True)
